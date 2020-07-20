@@ -1,16 +1,33 @@
 const path = require('path');
-const htmlWebpackPlugin = require('html-webpack-plugin');
-const miniCssExtractPlugin = require('mini-css-extract-plugin');
+const glob = require('glob');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+
+function toObject(paths) {
+  var ret = {};
+
+  paths.forEach(function(path) {
+      ret[path] = path;
+  });
+
+  console.log(ret);
+  return ret;
+}
 
 module.exports = {
-  entry: './src/js/index.js',
+  entry: toObject(glob.sync('./src/**/*.js')),
   output: {
-    filename: 'main.js',
+    filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },
+  mode: 'development',
   module: {
     rules: [
+      {
+        test: /\.html$/,
+        use: ['html-loader']
+      },
       {
         test: /\.(sa|sc|c)ss$/,
         use: [
@@ -23,7 +40,9 @@ module.exports = {
         test: /\.css$/i,
         use: [
           'style-loader',
-          'css-loader',
+          {
+            loader: 'css-loader',
+          }
         ]
       },
       {
@@ -32,7 +51,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env']
+            presets: ['@babel/preset-env'],
           }
         }
       },
@@ -40,18 +59,33 @@ module.exports = {
         test: /\.(jpe?g|png|gif|svg)$/i,
         loader: 'file-loader',
         options: {
-          name: '[name].[ext]'
+          name: '[name].[ext]',
+          outputPath: 'images'
         }
+      },
+      {
+        test: /\.html$/,
+        loader: 'file-loader',
+        options: {
+          name: '[name].[ext]',
+        },
       }
     ]
   },
   plugins: [
-    new htmlWebpackPlugin({
+    new HtmlWebpackPlugin({
       filename: 'index.html',
       template: './src/index.html'
     }),
-    new miniCssExtractPlugin({
+    new MiniCssExtractPlugin({
       filename: 'styles.css'
-    })
-  ]
+    }),
+    new CleanWebpackPlugin()
+  ],
+  devServer: {
+    contentBase: path.join(__dirname, 'dist'),
+    compress: true,
+    port: 3000,
+    open: true,
+  }
 }

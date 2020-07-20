@@ -1,4 +1,5 @@
 import '../css/styles.scss';
+import img from '../assets/images.jpg';
 
 const textComponent = () => {
   const elH1 = document.createElement('h1');
